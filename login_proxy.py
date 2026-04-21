@@ -4,13 +4,15 @@ from urllib.parse import quote
 import httpx
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse, Response
-from starlette.middleware.sessions import SessionMiddleware
+from itsdangerous import BadSignature, URLSafeSerializer
 
 AUTH_USER = os.getenv("BASIC_AUTH_USER", "admin")
 AUTH_PASSWORD = os.getenv("BASIC_AUTH_PASSWORD", "change-me-now")
 SESSION_SECRET = os.getenv("SESSION_SECRET", "replace-this-session-secret")
 DASHBOARD_PORT = int(os.getenv("DASHBOARD_PORT", "9120"))
 DASHBOARD_BASE = f"http://127.0.0.1:{DASHBOARD_PORT}"
+SESSION_COOKIE = "hermes_session"
+serializer = URLSafeSerializer(SESSION_SECRET, salt="hermes-login")
 HOP_HEADERS = {
     "connection",
     "keep-alive",
@@ -24,7 +26,6 @@ HOP_HEADERS = {
 }
 
 app = FastAPI()
-app.add_middleware(SessionMiddleware, secret_key=SESSION_SECRET, same_site="lax", https_only=True)
 
 
 def render_login(next_path: str, error: str = "") -> str:
@@ -86,14 +87,23 @@ async def login_submit(request: Request) -> Response:
     if username != AUTH_USER or password != AUTH_PASSWORD:
         return HTMLResponse(render_login(next_path, "Invalid username or password."), status_code=401)
 
-    request.session["authenticated"] = True
-    return RedirectResponse(next_path, status_code=303)
+    response = RedirectResponse(next_path, status_code=303)
+    response.set_cookie(
+        SESSION_COOKIE,
+        serializer.dumps({"authenticated": True}),
+        httponly=True,
+        secure=True,
+        samesite="lax",
+        path="/",
+    )
+    return response
 
 
 @app.get("/_auth/logout")
 async def logout(request: Request) -> RedirectResponse:
-    request.session.clear()
-    return RedirectResponse("/_auth/login", status_code=303)
+    response = RedirectResponse("/_auth/login", status_code=303)
+    response.delete_cookie(SESSION_COOKIE, path="/")
+    return response
 
 
 async def proxy_request(request: Request) -> Response:
@@ -129,7 +139,16 @@ async def auth_middleware(request: Request, call_next):
     if request.url.path.startswith("/_auth/"):
         return await call_next(request)
 
-    if not request.session.get("authenticated"):
+    authenticated = False
+    token = request.cookies.get(SESSION_COOKIE)
+    if token:
+        try:
+            payload = serializer.loads(token)
+            authenticated = bool(payload.get("authenticated"))
+        except BadSignature:
+            authenticated = False
+
+    if not authenticated:
         next_path = request.url.path
         if request.url.query:
             next_path = f"{next_path}?{request.url.query}"
