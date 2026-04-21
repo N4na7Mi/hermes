@@ -1,11 +1,12 @@
 # Hermes Agent on Claw Cloud
 
-This repo builds a minimal Docker image for the official Hermes Agent web dashboard and publishes it to GHCR with GitHub Actions.
+This repo builds a source-based Docker image for the official Hermes Agent web dashboard and publishes it to GHCR with GitHub Actions.
 
 ## What it does
 
-- Installs `hermes-agent[web]`
-- Starts the official dashboard with `hermes dashboard`
+- Builds the official Hermes dashboard from source
+- Installs Hermes with the web dependencies included
+- Starts the dashboard with `hermes dashboard`
 - Binds to `0.0.0.0:9119`
 - Lets Claw Cloud inject your API key and base URL as environment variables
 
