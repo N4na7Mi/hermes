@@ -15,8 +15,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check out repository
+      - name: Check out deployment repository
         uses: actions/checkout@v4
+
+      - name: Check out Hermes source
+        uses: actions/checkout@v4
+        with:
+          repository: NousResearch/hermes-agent
+          path: hermes-agent-src
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
