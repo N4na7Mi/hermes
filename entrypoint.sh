@@ -1,9 +1,12 @@
 #!/bin/sh
 set -eu
 
-PROXY_PORT="${PROXY_PORT:-9119}"
-DASHBOARD_HOST="${DASHBOARD_HOST:-127.0.0.1}"
-DASHBOARD_PORT="${DASHBOARD_PORT:-9120}"
+export HOME="${HOME:-/home/agent}"
+export HERMES_HOME="${HERMES_HOME:-$HOME/.hermes}"
+export HERMES_BIN="${HERMES_BIN:-/opt/hermes/.venv/bin/hermes}"
+export PORT="${PORT:-9119}"
+export UPSTREAM="${UPSTREAM:-http://127.0.0.1:8642}"
 
-hermes dashboard --host "$DASHBOARD_HOST" --port "$DASHBOARD_PORT" &
-exec uvicorn login_proxy:app --host 0.0.0.0 --port "$PROXY_PORT" --app-dir /
+mkdir -p "$HERMES_HOME" "$HOME/.hermes-web-ui"
+
+exec node /app/dist/server/index.js

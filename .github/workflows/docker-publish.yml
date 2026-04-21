@@ -18,11 +18,11 @@ jobs:
       - name: Check out deployment repository
         uses: actions/checkout@v4
 
-      - name: Check out Hermes source
+      - name: Check out hermes-web-ui source
         uses: actions/checkout@v4
         with:
-          repository: NousResearch/hermes-agent
-          path: hermes-agent-src
+          repository: EKKOLearnAI/hermes-web-ui
+          path: hermes-web-ui-src
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3

@@ -1,36 +1,39 @@
-FROM node:20-bookworm-slim AS web-builder
+FROM nousresearch/hermes-agent:latest
 
-WORKDIR /src
-COPY hermes-agent-src/ /src/
+USER root
 
-WORKDIR /src/web
-RUN npm install && npm run build
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    curl \
+    make \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
 
-FROM python:3.11-slim AS app-builder
+RUN ARCH=$(dpkg --print-architecture) \
+    && if [ "$ARCH" = "amd64" ]; then NODE_ARCH="x64"; else NODE_ARCH="$ARCH"; fi \
+    && curl -fsSL "https://nodejs.org/dist/v23.11.0/node-v23.11.0-linux-${NODE_ARCH}.tar.gz" -o /tmp/node.tar.gz \
+    && tar -xzf /tmp/node.tar.gz -C /usr/local --strip-components=1 \
+    && rm -f /tmp/node.tar.gz \
+    && node --version
 
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PIP_NO_CACHE_DIR=1
+WORKDIR /app
 
-WORKDIR /src
-COPY hermes-agent-src/ /src/
-COPY --from=web-builder /src/hermes_cli/web_dist /src/hermes_cli/web_dist
-RUN pip install --no-cache-dir ".[web]"
+COPY hermes-web-ui-src/package*.json ./
+RUN npm install
 
-FROM python:3.11-slim
+COPY hermes-web-ui-src/ /app/
+RUN npm run build && npm prune --omit=dev
 
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PROXY_PORT=9119 \
-    DASHBOARD_HOST=127.0.0.1 \
-    DASHBOARD_PORT=9120
+ENV NODE_ENV=production \
+    HOME=/home/agent \
+    HERMES_HOME=/home/agent/.hermes \
+    HERMES_BIN=/opt/hermes/.venv/bin/hermes \
+    PORT=9119 \
+    UPSTREAM=http://127.0.0.1:8642
 
-COPY --from=app-builder /usr/local /usr/local
 COPY entrypoint.sh /entrypoint.sh
-COPY login_proxy.py /login_proxy.py
-
-RUN pip install --no-cache-dir itsdangerous python-multipart && chmod +x /entrypoint.sh
+RUN chmod +x /entrypoint.sh && mkdir -p /home/agent/.hermes /home/agent/.hermes-web-ui
 
 EXPOSE 9119
 
-CMD ["/entrypoint.sh"]
+ENTRYPOINT ["/entrypoint.sh"]

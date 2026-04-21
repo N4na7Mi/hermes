@@ -1,30 +1,28 @@
-# Hermes Agent on Claw Cloud
+# Hermes Web Chat on Claw Cloud
 
-This repo builds a source-based Docker image for the official Hermes Agent web dashboard and publishes it to GHCR with GitHub Actions.
+This repo builds a Docker image for `hermes-web-ui`, publishes it to GHCR with GitHub Actions, and runs it on Claw Cloud so you can open a web page and chat directly.
 
 ## What it does
 
-- Builds the official Hermes dashboard from source
-- Installs Hermes with the web dependencies included
-- Starts Hermes only on `127.0.0.1:9120`
-- Exposes a password-protected login proxy on `0.0.0.0:9119`
-- Lets Claw Cloud inject your API key and base URL as environment variables
+- Uses the upstream `nousresearch/hermes-agent` image as the Hermes runtime
+- Builds the upstream `EKKOLearnAI/hermes-web-ui` frontend and server
+- Exposes a real web chat UI instead of the official management dashboard
+- Keeps the Hermes gateway on `127.0.0.1:8642` inside the container
+- Protects the UI with the built-in token login page
 
 ## Fastest path to go live
 
-### 1. Create a new GitHub repo
+### 1. Push this repo to GitHub
 
-Create an empty repo and upload these files.
+Push to `main`. GitHub Actions will build and publish:
 
-### 2. Push to `main`
+```text
+ghcr.io/<your-github-username>/hermes-clawcloud:latest
+```
 
-Once pushed, GitHub Actions will build and publish:
+If the GHCR package is private, make it public in GitHub package settings or configure Claw Cloud with registry credentials.
 
-- `ghcr.io/<your-github-username>/hermes-clawcloud:latest`
-
-If your package is private, make it public in the GHCR package settings or configure Claw Cloud with registry credentials.
-
-### 3. Deploy on Claw Cloud
+### 2. Deploy on Claw Cloud
 
 Create a new app and use this image:
 
@@ -32,34 +30,44 @@ Create a new app and use this image:
 ghcr.io/<your-github-username>/hermes-clawcloud:latest
 ```
 
-Set container port to:
+Set the container port to:
 
 ```text
 9119
 ```
 
-### 4. Add environment variables in Claw Cloud
+### 3. Add environment variables in Claw Cloud
 
 Minimum required:
 
 ```text
 OPENAI_API_KEY=your_api_key
 OPENAI_BASE_URL=https://your-provider.example.com/v1
-BASIC_AUTH_USER=admin
-BASIC_AUTH_PASSWORD=change-me-now
-SESSION_SECRET=replace-this-session-secret
+AUTH_TOKEN=change-this-to-a-long-random-string
 ```
 
-Optional:
+Recommended optional values:
 
 ```text
-PROXY_PORT=9119
-DASHBOARD_HOST=127.0.0.1
-DASHBOARD_PORT=9120
+PORT=9119
+UPSTREAM=http://127.0.0.1:8642
+HERMES_HOME=/home/agent/.hermes
+HERMES_BIN=/opt/hermes/.venv/bin/hermes
 ```
+
+### 4. Open the app
+
+When the container is ready:
+
+- open the Claw Cloud app URL
+- you will see the Hermes Web UI login page
+- paste the `AUTH_TOKEN` value
+- enter the chat page and start talking
 
 ## Notes
 
-- This setup assumes your provider is OpenAI-compatible.
-- Do not commit real API keys.
-- If you use OpenRouter or another provider later, replace the environment variables accordingly.
+- This is the fastest path to a real chat frontend.
+- The login page uses `AUTH_TOKEN`, not username/password.
+- The Hermes gateway stays internal to the container and is not exposed publicly.
+- If you want settings and chat state to survive redeploys, mount persistent storage for `/home/agent/.hermes` and `/home/agent/.hermes-web-ui`.
+- Do not commit real API keys or auth tokens.
