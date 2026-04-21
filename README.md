@@ -7,7 +7,7 @@ This repo builds a source-based Docker image for the official Hermes Agent web d
 - Builds the official Hermes dashboard from source
 - Installs Hermes with the web dependencies included
 - Starts Hermes only on `127.0.0.1:9120`
-- Exposes a password-protected Caddy proxy on `0.0.0.0:9119`
+- Exposes a password-protected login proxy on `0.0.0.0:9119`
 - Lets Claw Cloud inject your API key and base URL as environment variables
 
 ## Fastest path to go live
@@ -47,6 +47,7 @@ OPENAI_API_KEY=your_api_key
 OPENAI_BASE_URL=https://your-provider.example.com/v1
 BASIC_AUTH_USER=admin
 BASIC_AUTH_PASSWORD=change-me-now
+SESSION_SECRET=replace-this-session-secret
 ```
 
 Optional:

@@ -17,8 +17,6 @@ COPY hermes-agent-src/ /src/
 COPY --from=web-builder /src/hermes_cli/web_dist /src/hermes_cli/web_dist
 RUN pip install --no-cache-dir ".[web]"
 
-FROM caddy:2.8.4-alpine AS caddy-bin
-
 FROM python:3.11-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -28,8 +26,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     DASHBOARD_PORT=9120
 
 COPY --from=app-builder /usr/local /usr/local
-COPY --from=caddy-bin /usr/bin/caddy /usr/bin/caddy
 COPY entrypoint.sh /entrypoint.sh
+COPY login_proxy.py /login_proxy.py
 
 RUN chmod +x /entrypoint.sh
 
