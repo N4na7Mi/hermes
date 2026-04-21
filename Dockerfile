@@ -17,15 +17,22 @@ COPY hermes-agent-src/ /src/
 COPY --from=web-builder /src/hermes_cli/web_dist /src/hermes_cli/web_dist
 RUN pip install --no-cache-dir ".[web]"
 
+FROM caddy:2.8.4-alpine AS caddy-bin
+
 FROM python:3.11-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    DASHBOARD_HOST=0.0.0.0 \
-    DASHBOARD_PORT=9119
+    PROXY_PORT=9119 \
+    DASHBOARD_HOST=127.0.0.1 \
+    DASHBOARD_PORT=9120
 
 COPY --from=app-builder /usr/local /usr/local
+COPY --from=caddy-bin /usr/bin/caddy /usr/bin/caddy
+COPY entrypoint.sh /entrypoint.sh
+
+RUN chmod +x /entrypoint.sh
 
 EXPOSE 9119
 
-CMD ["sh", "-lc", "hermes dashboard --host ${DASHBOARD_HOST} --port ${DASHBOARD_PORT}"]
+CMD ["/entrypoint.sh"]
