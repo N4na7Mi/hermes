@@ -50,8 +50,8 @@ OPENAI_BASE_URL=https://your-provider.example.com/v1
 Optional:
 
 ```text
-HERMES_HOST=0.0.0.0
-HERMES_PORT=9119
+DASHBOARD_HOST=0.0.0.0
+DASHBOARD_PORT=9119
 ```
 
 ## Notes

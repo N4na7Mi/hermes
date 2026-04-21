@@ -21,11 +21,11 @@ FROM python:3.11-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    HERMES_HOST=0.0.0.0 \
-    HERMES_PORT=9119
+    DASHBOARD_HOST=0.0.0.0 \
+    DASHBOARD_PORT=9119
 
 COPY --from=app-builder /usr/local /usr/local
 
 EXPOSE 9119
 
-CMD ["sh", "-lc", "hermes dashboard --host ${HERMES_HOST} --port ${HERMES_PORT}"]
+CMD ["sh", "-lc", "hermes dashboard --host ${DASHBOARD_HOST} --port ${DASHBOARD_PORT}"]
