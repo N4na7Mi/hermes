@@ -29,7 +29,7 @@ COPY --from=app-builder /usr/local /usr/local
 COPY entrypoint.sh /entrypoint.sh
 COPY login_proxy.py /login_proxy.py
 
-RUN pip install --no-cache-dir itsdangerous && chmod +x /entrypoint.sh
+RUN pip install --no-cache-dir itsdangerous python-multipart && chmod +x /entrypoint.sh
 
 EXPOSE 9119
 
