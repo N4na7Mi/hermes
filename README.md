@@ -73,6 +73,6 @@ When the container is ready:
 - The login page uses `AUTH_TOKEN`, not username/password.
 - The Hermes gateway stays internal to the container and is not exposed publicly.
 - `GATEWAY_ALLOW_ALL_USERS=true` is only for the internal loopback gateway used by the web UI.
-- This single-container setup runs two long-lived processes in one pod: Hermes gateway and the web UI server.
+- This single-container setup starts gateway once, then leaves gateway restarts to Hermes while the web UI server remains the pod's main process.
 - Mount persistent storage to `/data` so both `/data/.hermes` and `/data/.hermes-web-ui` survive redeploys.
 - Do not commit real API keys or auth tokens.

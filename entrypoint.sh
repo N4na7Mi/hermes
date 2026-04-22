@@ -36,26 +36,17 @@ export HERMES_HOME="${HERMES_HOME:-$DATA_DIR/.hermes}"
 cleanup() {
   if [ -n "${webui_pid:-}" ] && kill -0 "$webui_pid" 2>/dev/null; then
     kill "$webui_pid" 2>/dev/null || true
+    wait "$webui_pid" 2>/dev/null || true
   fi
-  if [ -n "${gateway_pid:-}" ] && kill -0 "$gateway_pid" 2>/dev/null; then
-    kill "$gateway_pid" 2>/dev/null || true
-  fi
-  wait 2>/dev/null || true
 }
 
 trap cleanup INT TERM EXIT
 
 "$HERMES_BIN" gateway run --replace &
-gateway_pid=$!
 
 i=0
 until curl -fsS "$UPSTREAM/health" >/dev/null 2>&1; do
   i=$((i + 1))
-  if ! kill -0 "$gateway_pid" 2>/dev/null; then
-    echo "Gateway exited before becoming healthy." >&2
-    wait "$gateway_pid"
-    exit 1
-  fi
   if [ "$i" -ge 60 ]; then
     echo "Gateway did not become healthy in time." >&2
     exit 1
@@ -66,14 +57,4 @@ done
 node /app/dist/server/index.js &
 webui_pid=$!
 
-while :; do
-  if ! kill -0 "$gateway_pid" 2>/dev/null; then
-    wait "$gateway_pid"
-    exit 1
-  fi
-  if ! kill -0 "$webui_pid" 2>/dev/null; then
-    wait "$webui_pid"
-    exit 1
-  fi
-  sleep 2
-done
+wait "$webui_pid"
