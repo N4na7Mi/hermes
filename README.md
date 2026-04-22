@@ -7,6 +7,7 @@ This repo builds a Docker image for `hermes-web-ui`, publishes it to GHCR with G
 - Uses the upstream `nousresearch/hermes-agent` image as the Hermes runtime
 - Builds the upstream `EKKOLearnAI/hermes-web-ui` frontend and server
 - Exposes a real web chat UI instead of the official management dashboard
+- Starts the Hermes gateway inside the container before the web UI server
 - Keeps the Hermes gateway on `127.0.0.1:8642` inside the container
 - Protects the UI with the built-in token login page
 
@@ -51,7 +52,8 @@ Recommended optional values:
 ```text
 PORT=9119
 UPSTREAM=http://127.0.0.1:8642
-HERMES_HOME=/home/agent/.hermes
+DATA_DIR=/data
+HERMES_HOME=/data/.hermes
 HERMES_BIN=/opt/hermes/.venv/bin/hermes
 ```
 
@@ -69,5 +71,5 @@ When the container is ready:
 - This is the fastest path to a real chat frontend.
 - The login page uses `AUTH_TOKEN`, not username/password.
 - The Hermes gateway stays internal to the container and is not exposed publicly.
-- If you want settings and chat state to survive redeploys, mount persistent storage for `/home/agent/.hermes` and `/home/agent/.hermes-web-ui`.
+- Mount persistent storage to `/data` so both `/data/.hermes` and `/data/.hermes-web-ui` survive redeploys.
 - Do not commit real API keys or auth tokens.

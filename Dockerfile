@@ -25,14 +25,17 @@ COPY hermes-web-ui-src/ /app/
 RUN npm run build && npm prune --omit=dev
 
 ENV NODE_ENV=production \
+    DATA_DIR=/data \
     HOME=/home/agent \
-    HERMES_HOME=/home/agent/.hermes \
+    HERMES_HOME=/data/.hermes \
     HERMES_BIN=/opt/hermes/.venv/bin/hermes \
     PORT=9119 \
     UPSTREAM=http://127.0.0.1:8642
 
 COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh && mkdir -p /home/agent/.hermes /home/agent/.hermes-web-ui
+RUN chmod +x /entrypoint.sh && mkdir -p /data /home/agent
+
+VOLUME ["/data"]
 
 EXPOSE 9119
 
