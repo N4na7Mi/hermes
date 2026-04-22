@@ -4,6 +4,7 @@ set -eu
 export DATA_DIR="${DATA_DIR:-/data}"
 export HOME="${HOME:-/home/agent}"
 export HERMES_BIN="${HERMES_BIN:-/opt/hermes/.venv/bin/hermes}"
+export GATEWAY_ALLOW_ALL_USERS="${GATEWAY_ALLOW_ALL_USERS:-true}"
 export PORT="${PORT:-9119}"
 export UPSTREAM="${UPSTREAM:-http://127.0.0.1:8642}"
 
@@ -31,17 +32,5 @@ link_persistent_dir "$HOME/.hermes" "$DATA_DIR/.hermes"
 link_persistent_dir "$HOME/.hermes-web-ui" "$DATA_DIR/.hermes-web-ui"
 
 export HERMES_HOME="${HERMES_HOME:-$DATA_DIR/.hermes}"
-
-"$HERMES_BIN" gateway run --replace &
-
-i=0
-until curl -fsS "$UPSTREAM/health" >/dev/null 2>&1; do
-  i=$((i + 1))
-  if [ "$i" -ge 30 ]; then
-    echo "Gateway did not become healthy in time." >&2
-    break
-  fi
-  sleep 1
-done
 
 exec node /app/dist/server/index.js

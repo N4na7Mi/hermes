@@ -29,6 +29,7 @@ ENV NODE_ENV=production \
     HOME=/home/agent \
     HERMES_HOME=/data/.hermes \
     HERMES_BIN=/opt/hermes/.venv/bin/hermes \
+    GATEWAY_ALLOW_ALL_USERS=true \
     PORT=9119 \
     UPSTREAM=http://127.0.0.1:8642
 
